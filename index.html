@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Portfolio</title>
+    <title>Whirdle's Builds</title>
     <style>
         * {
             margin: 0;
@@ -16,14 +16,46 @@
             background: #000;
             color: #ffffff;
             padding: 20px;
+            position: relative;
+            min-height: 100vh;
+        }
+        
+        .background-images {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            overflow: hidden;
+        }
+        
+        .bg-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            filter: blur(60px) brightness(0.4);
+            opacity: 0;
+            transition: opacity 0.8s ease-in-out;
+        }
+        
+        .bg-image.active {
+            opacity: 1;
+        }
+        
+        .content-wrapper {
+            position: relative;
+            z-index: 1;
         }
         
         .header {
             text-align: center;
             margin-bottom: 40px;
             padding: 40px 20px;
-            position: relative;
-            z-index: 1;
         }
         
         .header h1 {
@@ -43,31 +75,11 @@
         }
         
         .project-card {
-            position: relative;
-            margin-bottom: 24px;
-            overflow: visible;
-        }
-        
-        .project-background {
-            position: absolute;
-            top: -40px;
-            left: -40px;
-            right: -40px;
-            bottom: -40px;
-            background-size: cover;
-            background-position: center;
-            filter: blur(60px) brightness(0.4);
-            z-index: 0;
-            border-radius: 20px;
-        }
-        
-        .project-content {
-            position: relative;
-            z-index: 1;
             background: rgba(30, 30, 30, 0.85);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 12px;
+            margin-bottom: 24px;
             overflow: hidden;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
         }
@@ -147,7 +159,12 @@
     </style>
 </head>
 <body>
-    <div class="header">
+    <div class="background-images" id="background-container">
+        <!-- Background images will be added here -->
+    </div>
+    
+    <div class="content-wrapper">
+        <div class="header">
 	<h1>Whirdle's Building Portfolio</h1>
 	<p>
     	Instagram: <a href="https://www.instagram.com/whirdle_" target="_blank">Whirdle_</a><br>
@@ -156,9 +173,10 @@
 	</p>
 </div>
 
-    
-    <div class="container" id="projects-container">
-        <!-- Projects will be loaded here -->
+        
+        <div class="container" id="projects-container">
+            <!-- Projects will be loaded here -->
+        </div>
     </div>
 
     <script>
@@ -167,21 +185,14 @@
             .then(response => response.json())
             .then(data => {
                 const container = document.getElementById('projects-container');
+                const bgContainer = document.getElementById('background-container');
+                let allImages = [];
                 
                 data.projects.forEach((project, projectIndex) => {
-                    // Create project card wrapper
+                    // Create project card
                     const card = document.createElement('div');
                     card.className = 'project-card';
-                    
-                    // Create blurred background using first image of the project
-                    const bgDiv = document.createElement('div');
-                    bgDiv.className = 'project-background';
-                    bgDiv.style.backgroundImage = `url(${project.images[0]})`;
-                    card.appendChild(bgDiv);
-                    
-                    // Create content wrapper
-                    const content = document.createElement('div');
-                    content.className = 'project-content';
+                    card.dataset.projectIndex = projectIndex;
                     
                     // Create carousel
                     const carousel = document.createElement('div');
@@ -199,10 +210,13 @@
                         img.alt = project.title;
                         imageDiv.appendChild(img);
                         carouselImages.appendChild(imageDiv);
+                        
+                        // Add to background images array
+                        allImages.push(imageSrc);
                     });
                     
                     carousel.appendChild(carouselImages);
-                    content.appendChild(carousel);
+                    card.appendChild(carousel);
                     
                     // Add dots if more than one image
                     if (project.images.length > 1) {
@@ -215,22 +229,18 @@
                             dotsDiv.appendChild(dot);
                         });
                         
-                        content.appendChild(dotsDiv);
+                        card.appendChild(dotsDiv);
                         
-                        // Update background and dots on scroll
+                        // Update dots on scroll
                         carouselImages.addEventListener('scroll', () => {
                             const scrollLeft = carouselImages.scrollLeft;
                             const width = carouselImages.offsetWidth;
                             const currentIndex = Math.round(scrollLeft / width);
                             
-                            // Update dots
                             const dots = dotsDiv.querySelectorAll('.dot');
                             dots.forEach((dot, index) => {
                                 dot.classList.toggle('active', index === currentIndex);
                             });
-                            
-                            // Update background to match current image
-                            bgDiv.style.backgroundImage = `url(${project.images[currentIndex]})`;
                         });
                     }
                     
@@ -248,11 +258,64 @@
                     
                     info.appendChild(title);
                     info.appendChild(description);
-                    content.appendChild(info);
+                    card.appendChild(info);
                     
-                    card.appendChild(content);
                     container.appendChild(card);
                 });
+                
+                // Create background images
+                allImages.forEach((imageSrc, index) => {
+                    const bgDiv = document.createElement('div');
+                    bgDiv.className = 'bg-image';
+                    bgDiv.style.backgroundImage = `url(${imageSrc})`;
+                    bgDiv.dataset.index = index;
+                    bgContainer.appendChild(bgDiv);
+                });
+                
+                // Show first background image
+                if (bgContainer.children.length > 0) {
+                    bgContainer.children[0].classList.add('active');
+                }
+                
+                // Update background based on scroll position
+                let currentBgIndex = 0;
+                
+                function updateBackground() {
+                    const scrollY = window.scrollY;
+                    const windowHeight = window.innerHeight;
+                    const cards = document.querySelectorAll('.project-card');
+                    
+                    let newBgIndex = 0;
+                    
+                    cards.forEach((card, cardIndex) => {
+                        const rect = card.getBoundingClientRect();
+                        const cardTop = rect.top + scrollY;
+                        const cardMiddle = cardTop + rect.height / 2;
+                        
+                        if (scrollY + windowHeight / 2 >= cardMiddle) {
+                            const project = data.projects[cardIndex];
+                            let imageOffset = 0;
+                            
+                            for (let i = 0; i < cardIndex; i++) {
+                                imageOffset += data.projects[i].images.length;
+                            }
+                            
+                            newBgIndex = imageOffset;
+                        }
+                    });
+                    
+                    if (newBgIndex !== currentBgIndex) {
+                        const bgImages = bgContainer.querySelectorAll('.bg-image');
+                        bgImages.forEach(img => img.classList.remove('active'));
+                        if (bgImages[newBgIndex]) {
+                            bgImages[newBgIndex].classList.add('active');
+                        }
+                        currentBgIndex = newBgIndex;
+                    }
+                }
+                
+                window.addEventListener('scroll', updateBackground);
+                updateBackground();
             })
             .catch(error => {
                 console.error('Error loading projects:', error);
