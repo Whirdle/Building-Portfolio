@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Portfolio</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: #fafafa;
+            color: #262626;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 40px 20px;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #8e8e8e;
+            font-size: 16px;
+        }
+
+        .container {
+            max-width: 935px;
+            margin: 0 auto;
+        }
+
+        .project-card {
+            background: white;
+            border: 1px solid #dbdbdb;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+
+        .carousel {
+            position: relative;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .carousel-images {
+            display: flex;
+            scroll-snap-type: x mandatory;
+            overflow-x: auto;
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .carousel-images::-webkit-scrollbar {
+            display: none;
+        }
+
+        .carousel-images {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .carousel-image {
+            min-width: 100%;
+            scroll-snap-align: start;
+            background: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .carousel-image img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .project-info {
+            padding: 16px;
+        }
+
+        .project-title {
+            font-weight: 600;
+            font-size: 18px;
+            margin-bottom: 8px;
+        }
+
+        .project-description {
+            color: #262626;
+            line-height: 1.5;
+            font-size: 14px;
+        }
+
+        .carousel-dots {
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+            padding: 12px 0;
+        }
+
+        .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #dbdbdb;
+        }
+
+        .dot.active {
+            background: #0095f6;
+        }
+    </style>
+</head>
+<body>
+<div class="header">
+    <h1>Whirdle's Building Portfolio</h1>
+    <p>
+        Instagram: <a href="https://www.instagram.com/whirdle_" target="_blank">Whirdle_</a><br>
+        Patreon: <a href="https://www.patreon.com/whirdle" target="_blank">whirdle</a><br>
+        Discord: @whirdle
+    </p>
+</div>
+
+<div class="container" id="projects-container">
+</div>
+
+<script>
+    // Load projects from JSON file
+    fetch('projects.json')
+        .then(response => response.json())
+        .then(data => {
+            const container = document.getElementById('projects-container');
+
+            data.projects.forEach(project => {
+                const card = document.createElement('div');
+                card.className = 'project-card';
+
+                const carousel = document.createElement('div');
+                carousel.className = 'carousel';
+
+                const carouselImages = document.createElement('div');
+                carouselImages.className = 'carousel-images';
+
+                project.images.forEach(imageSrc => {
+                    const imageDiv = document.createElement('div');
+                    imageDiv.className = 'carousel-image';
+                    const img = document.createElement('img');
+                    img.src = imageSrc;
+                    img.alt = project.title;
+                    imageDiv.appendChild(img);
+                    carouselImages.appendChild(imageDiv);
+                });
+
+                carousel.appendChild(carouselImages);
+                card.appendChild(carousel);
+
+                if (project.images.length > 1) {
+                    const dotsDiv = document.createElement('div');
+                    dotsDiv.className = 'carousel-dots';
+
+                    project.images.forEach((_, index) => {
+                        const dot = document.createElement('div');
+                        dot.className = index === 0 ? 'dot active' : 'dot';
+                        dotsDiv.appendChild(dot);
+                    });
+
+                    card.appendChild(dotsDiv);
+
+                    carouselImages.addEventListener('scroll', () => {
+                        const scrollLeft = carouselImages.scrollLeft;
+                        const width = carouselImages.offsetWidth;
+                        const currentIndex = Math.round(scrollLeft / width);
+
+                        const dots = dotsDiv.querySelectorAll('.dot');
+                        dots.forEach((dot, index) => {
+                            dot.classList.toggle('active', index === currentIndex);
+                        });
+                    });
+                }
+
+                // Add project info
+                const info = document.createElement('div');
+                info.className = 'project-info';
+
+                const title = document.createElement('div');
+                title.className = 'project-title';
+                title.textContent = project.title;
+
+                const description = document.createElement('div');
+                description.className = 'project-description';
+                description.textContent = project.description;
+
+                info.appendChild(title);
+                info.appendChild(description);
+                card.appendChild(info);
+
+                container.appendChild(card);
+            });
+        })
+        .catch(error => {
+            console.error('Error loading projects:', error);
+            document.getElementById('projects-container').innerHTML =
+                '<p style="text-align: center; color: #8e8e8e;">Projects not found</p>';
+        });
+</script>
+</body>
+</html>
