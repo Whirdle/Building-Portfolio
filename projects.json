@@ -1,6 +1,27 @@
 {
   "projects": [
     {
+      "title": "Beagle",
+      "description": "Perspective Organic - Built on the Bakery",
+      "images": [
+        "images/beagle1.png"
+      ]
+    },
+    {
+      "title": "Wine Glass",
+      "description": "Perspective Organic - Built on Builder's Hub",
+      "images": [
+        "images/wine_glass1.png"
+      ]
+    },
+    {
+      "title": "Reference Eagle",
+      "description": "Perspective Organic - Built on Builder's Hub",
+      "images": [
+        "images/baseball_eagle1.png"
+      ]
+    },
+    {
       "title": "Flying Pig",
       "description": "Perspective Organic - Built on the Bakery",
       "images": [
@@ -220,4 +241,5 @@
       ]
     }
   ]
+
 }
